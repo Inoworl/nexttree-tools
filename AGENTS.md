@@ -7,7 +7,7 @@
 ## 対象読者
 
 - `nexttree-tools` の Nuxt frontend、Hono backend、Firebase 関連設定を開発・保守するチームメンバー。
-- Codex などの AI 開発支援ツールに、`nexttree-tools` 固有の作業ルールを伝える人。
+- Codex、Claude Code などの AI 開発支援ツールに、`nexttree-tools` 固有の作業ルールを伝える人。
 
 ## Global Guidance
 
@@ -85,40 +85,38 @@ AI エージェントが開発の際に読み込んだり確認したりする�
 - `.ai/requirements.md`
 - `.ai/implementation-plan.md`
 - `.ai/agent-guidelines.md`
+- `.ai/workflows/`
+- `.ai/agent-profiles/`
 - `.ai/coding-rules/project.md`
 
 ## 実装前に確認する情報
 
 - 仕様の一次情報は `dos/` を確認する。
 - 実装時の作業判断、計画、チェックリストは `.ai/` を確認する。
+- 外部スキルやツールが使えない環境では、`.ai/workflows/` の Markdown 手順を正とする。
+- Codex や Claude Code などツール固有の読み替えは `.ai/agent-profiles/` を確認する。
 - Code モード時は `./.ai/coding-rules/` ディレクトリ内の規約を確認する。
 - `.ai/tmp/`、`.ai/secrets/`、認証情報、テストアカウント、個人情報、外部サービス token を含む可能性があるファイルは、必要な場合だけユーザーに確認してから読む。
 - `.ai` 配下でも、ファイル名や配置から機密情報の可能性があるものは読まず、必要性を説明して確認する。
 
 ## 開発モード
 
-状況に応じて自動切替する。
+状況に応じて自動切替する。外部スキル名は必須ではない。利用できる場合だけ補助的に使う。
 
-- PM: 要件定義・計画。`/pm` スキルを使用する。
-- Architect: 設計・技術選定。`/serena-expert` スキルを使用する。
-- Code: 実装・テスト。`/workflow-feature` スキルを使用する。
-- PMO: 品質管理・レビュー。`/pmo` スキルを使用する。
+- PM: 要件定義・計画。`.ai/workflows/pm.md` を参照する。
+- Architect: 設計・技術選定。`.ai/workflows/architect.md` を参照する。
+- Code: 実装・テスト。`.ai/workflows/code.md` を参照する。
+- PMO: 品質管理・レビュー。`.ai/workflows/pmo.md` を参照する。
 
-## 委譲ルール
+## ツール非依存の作業ルール
 
 - 調査・探索: 3ファイル以上の読み込みが必要な場合は段階的に調査する。
-- テスト実行: `/test-runner` スキルを適用する。
-- コードレビュー: `/code-reviewer` スキルを適用する。
-- デバッグ(コード): `/debugger` スキル + `/systematic-debugging` スキルを適用する。
-- デバッグ(ブラウザ): `/debugger` スキル + `/debug-web-app-investigation` スキルを適用する。
-- ブラウザMCP運用: 基本は `Playwright Stateful MCP` を第一選択とし、同種エラーが2回以上連続した場合のみ `Playwright MCP` にフォールバックする。
-- 要件分析: `/pm` スキル + `/brainstorming` スキルを適用する。
-- 品質検証: `/pmo` スキル + `/verification-before-completion` スキルを適用する。
-- リファクタリング: `/refactor` スキルを適用する。
-- セキュリティ監査: `/security-auditor` スキルを適用する。
-- ドキュメント作成: `/doc-writer` スキルを適用する。
-- 計画作成: `/writing-plans` スキルを適用する。
-- TDD: `/test-driven-development` スキルを適用する。
+- テスト実行: `.ai/workflows/testing.md` を参照する。
+- コードレビュー: `.ai/workflows/review.md` を参照する。
+- 品質検証: `.ai/workflows/pmo.md` を参照する。
+- 学習の蓄積: `.ai/workflows/learning.md` を参照し、プロジェクト固有の知見は `dos/learnings/` に残す。
+- Codex のローカルスキル、Claude Code の独自機能、MCP などは、利用できる場合だけ補助として使う。
+- ツール固有機能を使う場合も、最終的な作業結果がこのリポジトリ内の文書と矛盾しないようにする。
 
 ## 作業プロセス
 
@@ -206,9 +204,12 @@ pnpm dev
 
 ## 学習の蓄積
 
-セッションで学んだことは `/learn` スキルで保存する。
+セッションで学んだプロジェクト固有の知見は `dos/learnings/` に記録する。
+
+Codex 環境で `/learn` スキルが使える場合は補助的に使ってよい。ただし、別ユーザーや Claude Code でも参照できるよう、永続化すべき内容は必ずプロジェクト内の `dos/learnings/` または仕様に対応する `dos/` ファイルへ反映する。
 
 ## 保守メモ
 
 - repo 名、default branch、Firebase project、検証コマンドが変わった場合は、このファイルも更新する。
 - `dos/` または `.ai/` の構成を変更した場合は、このファイルとの矛盾がないか確認する。
+- エージェント固有機能に依存するルールを追加する場合は、必ず `.ai/workflows/` にツール非依存の代替手順も用意する。
