@@ -1,0 +1,10 @@
+{
+  "name": "nexttree-tools",
+  "private": true,
+  "packageManager": "pnpm@10.4.1",
+  "scripts": {
+    "dev": "pnpm --recursive --parallel --stream run dev",
+    "build": "pnpm --recursive run build",
+    "test": "pnpm --recursive run test"
+  }
+}
