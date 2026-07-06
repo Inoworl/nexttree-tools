@@ -1,0 +1,54 @@
+name: nexttree-tools
+
+x-node-dev: &node-dev
+  image: node:22-bookworm-slim
+  working_dir: /workspace
+  volumes:
+    - ../..:/workspace
+    - pnpm-store:/pnpm/store
+  environment:
+    PNPM_HOME: /pnpm
+    PNPM_STORE_PATH: /pnpm/store
+    PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+services:
+  workspace:
+    <<: *node-dev
+    command: sh -lc "corepack enable && sleep infinity"
+
+  frontend:
+    <<: *node-dev
+    working_dir: /workspace/apps/biwa-counter/frontend
+    command: >
+      sh -lc "corepack enable &&
+      pnpm --dir /workspace install --frozen-lockfile=false &&
+      pnpm dev --host 0.0.0.0 --port 3000"
+    ports:
+      - "13700:3000"
+    environment:
+      PNPM_HOME: /pnpm
+      PNPM_STORE_PATH: /pnpm/store
+      PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NUXT_PUBLIC_API_BASE_URL: http://localhost:13701
+    profiles:
+      - app
+
+  backend:
+    <<: *node-dev
+    working_dir: /workspace/apps/biwa-counter/backend
+    command: >
+      sh -lc "corepack enable &&
+      pnpm --dir /workspace install --frozen-lockfile=false &&
+      pnpm dev"
+    ports:
+      - "13701:8787"
+    environment:
+      PNPM_HOME: /pnpm
+      PNPM_STORE_PATH: /pnpm/store
+      PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PORT: "8787"
+    profiles:
+      - app
+
+volumes:
+  pnpm-store:

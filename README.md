@@ -2,30 +2,43 @@
 
 Next Tree の業務ツール群を管理する pnpm workspace モノレポです。
 
-## Docker local development
+## Structure
 
-ポートは Obsidian vault の `projects/port-management-registry.md` に登録した `PROJECT_ID=37` を使います。
+```text
+nexttree-tools/
+  apps/
+    biwa-counter/
+      frontend/
+      backend/
+    website/
+    admin/
+  packages/
+    shared/
+    ui/
+    vision/
+  docker/
+    compose/
+  firebase-commons/
+  dos/
+```
 
-| Service | Container port | Host port | URL |
-| --- | ---: | ---: | --- |
-| frontend | 3000 | 13700 | http://localhost:13700 |
-| backend | 8787 | 13701 | http://localhost:13701 |
+## Local development
 
-アプリ実装後の起動コマンド:
+通常のローカル起動目標:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Docker を使う場合:
 
 ```bash
 docker compose --profile app up frontend backend
 ```
 
-ワークスペースだけを起動してコンテナ内で確認する場合:
+Docker 構成とポート管理の詳細は [docker/README.md](docker/README.md) を参照してください。
 
-```bash
-docker compose up -d workspace
-docker compose exec workspace sh
-```
+## Initial app
 
-Backend の health check は、実装後に以下で確認します。
-
-```bash
-curl http://localhost:13701/api/health
-```
+最初のアプリは `apps/biwa-counter` です。Nuxt frontend と Hono backend を分け、共通型は `packages/shared` に置きます。
