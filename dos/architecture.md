@@ -35,6 +35,8 @@ nexttree-tools
 │   ├── requirements.md
 │   ├── implementation-plan.md
 │   ├── agent-guidelines.md
+│   ├── workflows
+│   ├── agent-profiles
 │   └── coding-rules
 │       └── project.md
 ├── .env.example
@@ -57,6 +59,8 @@ nexttree-tools
 | `dos` | 業務内容、仕様、設計判断のドキュメント |
 | `firebase-commons` | Firebase 共通設定、環境別設定置き場、サンプル設定 |
 | `.ai` | AIエージェントが開発時に読む計画、参照、作業ルール |
+| `.ai/workflows` | ツール非依存の作業手順 |
+| `.ai/agent-profiles` | Codex、Claude Code などツール別の補足 |
 
 ## Backend 方針
 
