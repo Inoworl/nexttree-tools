@@ -18,6 +18,7 @@ Future Compose files should be added under `docker/compose/`, for example:
 ## Local development ports
 
 Ports are registered in the external Obsidian vault `projects/port-management-registry.md` with `PROJECT_ID=37`.
+Use the host ports for browser and curl access from macOS. The container ports remain the framework defaults.
 
 | Service | Container port | Host port | URL |
 | --- | ---: | ---: | --- |
@@ -33,14 +34,19 @@ docker compose up -d workspace
 docker compose exec workspace sh
 ```
 
-Start the app services after the frontend and backend packages exist:
+Start the app services:
 
 ```bash
 docker compose --profile app up frontend backend
 ```
 
-Backend health check after implementation:
+Backend health check:
 
 ```bash
 curl http://localhost:13701/api/health
 ```
+
+Direct host execution with `pnpm dev` still uses the framework defaults:
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8787
