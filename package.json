@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "pnpm --recursive --parallel --stream run dev",
     "build": "pnpm --recursive run build",
-    "test": "pnpm --recursive run test"
+    "test": "pnpm --recursive run test",
+    "hosting:prepare:loquat-counter": "corepack pnpm --filter @nexttree/biwa-counter-frontend generate && node firebase-commons/scripts/prepare-loquat-counter-hosting.mjs"
   }
 }

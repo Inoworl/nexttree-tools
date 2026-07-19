@@ -23,6 +23,7 @@ async function finishAnalysis(wrapper: VueWrapper) {
 describe('びわカウンターのUIフロー', () => {
   const createObjectURL = vi.fn<(file: File) => string>()
   const revokeObjectURL = vi.fn<(url: string) => void>()
+  const useHead = vi.fn()
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -30,6 +31,8 @@ describe('びわカウンターのUIフロー', () => {
     window.localStorage.clear()
     createObjectURL.mockReset()
     revokeObjectURL.mockReset()
+    useHead.mockReset()
+    vi.stubGlobal('useHead', useHead)
     createObjectURL.mockImplementation(file => `blob:${file.name}`)
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
@@ -47,6 +50,16 @@ describe('びわカウンターのUIフロー', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('ページタイトルをhead managerに登録する', () => {
+    const wrapper = mount(App)
+
+    expect(useHead).toHaveBeenCalledWith({
+      title: 'びわカウンター | Next Tree',
+    })
+    wrapper.unmount()
   })
 
   it('不正ファイルを拒否しても保持中の有効な写真を再解析できる', async () => {

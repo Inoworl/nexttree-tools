@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="びわカウンター">
+  <rect width="64" height="64" rx="10" fill="#286b47" />
+  <path
+    d="M32 49V29m0 4C31 23 24 18 15 18c1 9 7 15 17 15Zm0-4c2-9 9-14 18-13-1 8-7 13-18 13Z"
+    fill="none"
+    stroke="#ffffff"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="5"
+  />
+</svg>

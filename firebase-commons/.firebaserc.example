@@ -1,9 +1,23 @@
 {
   "projects": {
-    "dev": "nexttree-tools-dev",
-    "prod": "nexttree-tools-prod"
+    "dev": "inoworl-nexttree-tools-dev",
+    "prod": "inoworl-nexttree-tools-prod"
   },
-  "targets": {},
+  "targets": {
+    "inoworl-nexttree-tools-dev": {
+      "hosting": {
+        "loquat-counter": [
+          "nexttree-tools-loquat-dev"
+        ]
+      }
+    },
+    "inoworl-nexttree-tools-prod": {
+      "hosting": {
+        "loquat-counter": [
+          "nexttree-tools-loquat-prod"
+        ]
+      }
+    }
+  },
   "etags": {}
 }
-

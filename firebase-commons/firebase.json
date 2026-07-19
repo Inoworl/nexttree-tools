@@ -1,0 +1,33 @@
+{
+  "hosting": [
+    {
+      "target": "loquat-counter",
+      "public": "dist/loquat-counter",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store"
+            }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

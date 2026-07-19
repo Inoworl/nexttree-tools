@@ -23,6 +23,10 @@ type RecordFormHandle = {
   focusFirstError: (errors: RecordFormErrors) => void
 }
 
+useHead({
+  title: 'びわカウンター | Next Tree',
+})
+
 const selectedFile = ref<File | null>(null)
 const imageUrl = ref<string | null>(null)
 const fileError = ref<string | null>(null)
