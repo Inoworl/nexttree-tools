@@ -24,6 +24,7 @@
 firebase-commons/
 ├── .firebaserc.example
 ├── .gitignore
+├── firebase.json
 ├── README.md
 └── config/
     ├── dev/
@@ -42,6 +43,32 @@ cp firebase-commons/.firebaserc.example firebase-commons/.firebaserc
 
 `.firebaserc` の project ID は実際の Firebase project に合わせて変更する。
 
+## loquat-counter の Hosting
+
+Nuxt の静的ファイルを生成し、Firebase project ディレクトリ内の `dist/loquat-counter` へ配置する。`dist/` は Git 管理対象外である。
+
+```bash
+docker compose -f docker/compose/docker-compose.dev.yml --profile app run \
+  --rm --no-deps frontend sh -lc \
+  "corepack pnpm --dir /workspace hosting:prepare:loquat-counter"
+```
+
+Hosting Emulator で確認する。
+
+```bash
+cd firebase-commons
+firebase emulators:start --only hosting:loquat-counter --project dev
+```
+
+dev 環境へのデプロイは、次のコマンドで `nexttree-tools-loquat-dev` だけを対象にする。
+
+```bash
+cd firebase-commons
+firebase deploy --only hosting:loquat-counter --project dev
+```
+
+prod 環境へは、明示的に承認されたリリース作業でのみデプロイする。
+
 ## 禁止事項
 
 以下はこのディレクトリにコミットしない。
@@ -53,4 +80,3 @@ cp firebase-commons/.firebaserc.example firebase-commons/.firebaserc
 - Firebase Admin SDK の秘密鍵
 - CI/CD token
 - DB password
-

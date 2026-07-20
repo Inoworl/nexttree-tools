@@ -11,6 +11,8 @@ node_modules/
 **/.output/
 dist/
 **/dist/
+dist
+**/dist
 coverage/
 **/coverage/
 
