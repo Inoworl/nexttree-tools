@@ -16,6 +16,12 @@ function makeRecord(id = 'demo-1', second = 0) {
     fileName: `${id}.jpg`,
     storeName: '港店',
     recordDate: '2026-07-14',
+    productId: 'loquat',
+    productLabel: 'びわ',
+    varietyId: 'mogi',
+    varietyLabel: '茂木',
+    countUnit: 'pack',
+    countUnitLabel: 'パック',
     estimatedCount: 9,
     correctedCount: null,
   })
@@ -40,6 +46,12 @@ function createMemoryStorage(initialValue: string | null = null): {
     },
   }
 }
+
+describe('DEMO_STORAGE_KEY', () => {
+  it('produce-counter専用のv2キーを使う', () => {
+    expect(DEMO_STORAGE_KEY).toBe('nexttree:produce-counter:demo:v2')
+  })
+})
 
 describe('loadDemoRecords', () => {
   it('保存済みのデモ記録を復元する', () => {

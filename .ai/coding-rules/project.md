@@ -29,11 +29,10 @@
 
 - `estimatedCount` と `correctedCount` を分ける
 - `finalCount` は `correctedCount ?? estimatedCount` として扱う
-- カウント対象は `target` で管理する
+- カウント対象は `productId`、`varietyId`、`countUnit` で管理する
 
 ## Tests
 
 - 主要機能にはユニットテストを追加する
 - 初期段階では health check と shared 型の利用箇所を優先する
 - エッジケースは、保存・AI解析の本実装時に追加する
-

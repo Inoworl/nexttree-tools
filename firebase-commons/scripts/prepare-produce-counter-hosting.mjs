@@ -9,11 +9,11 @@ const firebaseCommonsDir = resolve(
 const repositoryRoot = resolve(firebaseCommonsDir, '..')
 const sourceDir = resolve(
   repositoryRoot,
-  'apps/biwa-counter/frontend/.output/public',
+  'apps/produce-counter/frontend/.output/public',
 )
 const destinationDir = resolve(
   firebaseCommonsDir,
-  'dist/loquat-counter',
+  'dist/produce-counter',
 )
 
 await access(sourceDir)
@@ -21,4 +21,4 @@ await rm(destinationDir, { recursive: true, force: true })
 await mkdir(destinationDir, { recursive: true })
 await cp(sourceDir, destinationDir, { recursive: true })
 
-console.log('Prepared Firebase Hosting files in firebase-commons/dist/loquat-counter')
+console.log('Prepared Firebase Hosting files in firebase-commons/dist/produce-counter')

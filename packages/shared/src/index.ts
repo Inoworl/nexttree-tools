@@ -1,15 +1,30 @@
 /**
- * カウント対象。びわ以外の農産物・商品に拡張する場合はここへ追加する。
+ * カウント対象。農産物・商品を追加する場合はここへIDを追加する。
  */
-export type CountTarget = 'biwa'
+export type ProductId = 'loquat' | 'kiwi' | 'chestnut'
+
+/**
+ * 解析・修正・保存を通して使うカウント単位。
+ */
+export type CountUnit = 'pack' | 'piece' | 'box'
 
 /**
  * 1回のカウント記録。AI 推定値と人間の修正値は分けて保持する。
  */
-export type CountRecord = {
+export type CountConfiguration = {
+  productId: ProductId
+  varietyId: string
+  countUnit: CountUnit
+}
+
+export type CountRecord = CountConfiguration & {
   id: string
-  target: CountTarget
+  productLabel: string
+  varietyLabel: string
+  countUnitLabel: string
   imageUrl: string
+  storeName: string
+  recordDate: string
   estimatedCount: number
   correctedCount: number | null
   finalCount: number

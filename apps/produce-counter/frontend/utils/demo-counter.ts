@@ -1,4 +1,83 @@
-import { resolveFinalCount } from '@nexttree/shared'
+import {
+  resolveFinalCount,
+  type CountUnit,
+  type ProductId,
+} from '@nexttree/shared'
+
+export type CountUnitOption = {
+  id: CountUnit
+  label: string
+}
+
+export type VarietyOption = {
+  id: string
+  label: string
+  defaultCountUnit: CountUnit
+}
+
+export type ProductOption = {
+  id: ProductId
+  label: string
+  varieties: readonly VarietyOption[]
+}
+
+export const COUNT_UNIT_OPTIONS: readonly CountUnitOption[] = [
+  { id: 'pack', label: 'パック' },
+  { id: 'piece', label: '個' },
+  { id: 'box', label: '箱' },
+]
+
+export const PRODUCT_OPTIONS: readonly ProductOption[] = [
+  {
+    id: 'loquat',
+    label: 'びわ',
+    varieties: [
+      { id: 'mogi', label: '茂木', defaultCountUnit: 'pack' },
+      { id: 'tanaka', label: '田中', defaultCountUnit: 'pack' },
+    ],
+  },
+  {
+    id: 'kiwi',
+    label: 'キウイ',
+    varieties: [
+      { id: 'hayward', label: 'ヘイワード', defaultCountUnit: 'piece' },
+      { id: 'gold', label: 'ゴールド', defaultCountUnit: 'piece' },
+    ],
+  },
+  {
+    id: 'chestnut',
+    label: '栗',
+    varieties: [
+      { id: 'tsukuba', label: '筑波', defaultCountUnit: 'pack' },
+      { id: 'ginyose', label: '銀寄', defaultCountUnit: 'pack' },
+    ],
+  },
+]
+
+export function getProductOption(productId: ProductId): ProductOption {
+  const product = PRODUCT_OPTIONS.find(option => option.id === productId)
+  if (!product) throw new Error(`Unknown product: ${productId}`)
+  return product
+}
+
+export function getVarietyOption(
+  productId: ProductId,
+  varietyId: string,
+): VarietyOption {
+  const variety = getProductOption(productId).varieties.find(
+    option => option.id === varietyId,
+  )
+  if (!variety) {
+    throw new Error(`Unknown variety: ${productId}/${varietyId}`)
+  }
+  return variety
+}
+
+export function getCountUnitLabel(countUnit: CountUnit): string {
+  const option = COUNT_UNIT_OPTIONS.find(unit => unit.id === countUnit)
+  if (!option) throw new Error(`Unknown count unit: ${countUnit}`)
+  return option.label
+}
 
 export type DetectionBox = {
   id: string
@@ -14,10 +93,15 @@ export type DemoAnalysis = {
 }
 
 export type DemoCountRecord = {
-  schemaVersion: 1
+  schemaVersion: 2
   source: 'demo'
   id: string
-  target: 'biwa'
+  productId: string
+  productLabel: string
+  varietyId: string
+  varietyLabel: string
+  countUnit: string
+  countUnitLabel: string
   fileName: string
   storeName: string
   recordDate: string
@@ -30,8 +114,15 @@ export type DemoCountRecord = {
 
 type CreateDemoRecordInput = Omit<
   DemoCountRecord,
-  'schemaVersion' | 'source' | 'target' | 'finalCount' | 'updatedAt'
+  | 'schemaVersion'
+  | 'source'
+  | 'productId'
+  | 'countUnit'
+  | 'finalCount'
+  | 'updatedAt'
 > & {
+  productId: ProductId
+  countUnit: CountUnit
   updatedAt?: string
 }
 
@@ -46,15 +137,15 @@ const MAX_STORE_NAME_LENGTH = 80
 const MAX_STORED_RECORDS = 20
 
 const DEMO_DETECTIONS: DetectionBox[] = [
-  { id: 'biwa-1', x: 12, y: 14, width: 13, height: 17 },
-  { id: 'biwa-2', x: 29, y: 9, width: 14, height: 18 },
-  { id: 'biwa-3', x: 49, y: 13, width: 13, height: 17 },
-  { id: 'biwa-4', x: 67, y: 19, width: 14, height: 18 },
-  { id: 'biwa-5', x: 19, y: 43, width: 14, height: 18 },
-  { id: 'biwa-6', x: 39, y: 39, width: 13, height: 17 },
-  { id: 'biwa-7', x: 58, y: 47, width: 14, height: 18 },
-  { id: 'biwa-8', x: 31, y: 68, width: 14, height: 18 },
-  { id: 'biwa-9', x: 55, y: 70, width: 13, height: 17 },
+  { id: 'detection-1', x: 12, y: 14, width: 13, height: 17 },
+  { id: 'detection-2', x: 29, y: 9, width: 14, height: 18 },
+  { id: 'detection-3', x: 49, y: 13, width: 13, height: 17 },
+  { id: 'detection-4', x: 67, y: 19, width: 14, height: 18 },
+  { id: 'detection-5', x: 19, y: 43, width: 14, height: 18 },
+  { id: 'detection-6', x: 39, y: 39, width: 13, height: 17 },
+  { id: 'detection-7', x: 58, y: 47, width: 14, height: 18 },
+  { id: 'detection-8', x: 31, y: 68, width: 14, height: 18 },
+  { id: 'detection-9', x: 55, y: 70, width: 13, height: 17 },
 ]
 
 export function createDemoAnalysis(): DemoAnalysis {
@@ -91,10 +182,15 @@ export function createDemoRecord(
   input: CreateDemoRecordInput,
 ): DemoCountRecord {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     source: 'demo',
     id: input.id,
-    target: 'biwa',
+    productId: input.productId,
+    productLabel: input.productLabel.trim(),
+    varietyId: input.varietyId,
+    varietyLabel: input.varietyLabel.trim(),
+    countUnit: input.countUnit,
+    countUnitLabel: input.countUnitLabel.trim(),
     fileName: input.fileName,
     storeName: input.storeName.trim(),
     recordDate: input.recordDate,
@@ -139,6 +235,7 @@ export function parseStoredDemoRecords(
     if (!Array.isArray(parsed)) return []
 
     return parsed
+      .map(migrateDemoCountRecord)
       .filter(isDemoCountRecord)
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
       .slice(0, MAX_STORED_RECORDS)
@@ -202,6 +299,23 @@ function isValidDateInput(value: string): boolean {
     && date.getDate() === day
 }
 
+function migrateDemoCountRecord(value: unknown): unknown {
+  if (!value || typeof value !== 'object') return value
+
+  const record = value as Record<string, unknown>
+  if (record.schemaVersion !== 2 || record.countUnitLabel !== undefined) {
+    return value
+  }
+
+  const unit = COUNT_UNIT_OPTIONS.find(option => option.id === record.countUnit)
+  if (!unit) return value
+
+  return {
+    ...record,
+    countUnitLabel: unit.label,
+  }
+}
+
 function isDemoCountRecord(value: unknown): value is DemoCountRecord {
   if (!value || typeof value !== 'object') return false
 
@@ -213,10 +327,15 @@ function isDemoCountRecord(value: unknown): value is DemoCountRecord {
   ) return false
 
   if (
-    record.schemaVersion !== 1
+    record.schemaVersion !== 2
     || record.source !== 'demo'
-    || record.target !== 'biwa'
     || !isNonEmptyString(record.id)
+    || !isNonEmptyString(record.productId)
+    || !isNonEmptyString(record.productLabel)
+    || !isNonEmptyString(record.varietyId)
+    || !isNonEmptyString(record.varietyLabel)
+    || !isNonEmptyString(record.countUnit)
+    || !isNonEmptyString(record.countUnitLabel)
     || !isNonEmptyString(record.fileName)
     || !isValidStoreName(record.storeName)
     || typeof record.recordDate !== 'string'

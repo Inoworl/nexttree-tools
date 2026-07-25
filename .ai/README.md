@@ -9,7 +9,7 @@
 1. `.ai/README.md`
 2. `.ai/requirements.md`
 3. `dos/project-spec.md`
-4. `dos/biwa-counter-requirements.md`
+4. `dos/produce-counter-requirements.md`
 5. `dos/architecture.md`
 6. `.ai/agent-guidelines.md`
 7. `.ai/implementation-plan.md`

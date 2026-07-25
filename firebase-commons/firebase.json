@@ -1,8 +1,8 @@
 {
   "hosting": [
     {
-      "target": "loquat-counter",
-      "public": "dist/loquat-counter",
+      "target": "produce-counter",
+      "public": "dist/produce-counter",
       "ignore": [
         "firebase.json",
         "**/.*",

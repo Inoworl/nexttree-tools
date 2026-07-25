@@ -16,7 +16,7 @@
 - `.env.example` を必ず作る
 - API 型は `packages/shared` に置く
 - 画像解析ロジックは `packages/vision` に分離する
-- びわ以外にも拡張できるよう `target` で管理する
+- 他の農産物にも拡張できるよう `productId`、`varietyId`、`countUnit` で管理する
 - AI 推定値と人間の修正値を分けて保存する
 - Cloud Run 前提で backend を構築する
 - Firebase に業務ロジックを寄せすぎない

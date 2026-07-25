@@ -43,28 +43,29 @@ cp firebase-commons/.firebaserc.example firebase-commons/.firebaserc
 
 `.firebaserc` の project ID は実際の Firebase project に合わせて変更する。
 
-## loquat-counter の Hosting
+## produce-counter の Hosting
 
-Nuxt の静的ファイルを生成し、Firebase project ディレクトリ内の `dist/loquat-counter` へ配置する。`dist/` は Git 管理対象外である。
+Nuxt の静的ファイルを生成し、Firebase project ディレクトリ内の `dist/produce-counter` へ配置する。`dist/` は Git 管理対象外である。
+Hosting用の生成では、未使用のAPI URLを空にしてローカルURLが公開成果物へ入らないようにする。
 
 ```bash
 docker compose -f docker/compose/docker-compose.dev.yml --profile app run \
   --rm --no-deps frontend sh -lc \
-  "corepack pnpm --dir /workspace hosting:prepare:loquat-counter"
+  "corepack pnpm --dir /workspace hosting:prepare:produce-counter"
 ```
 
 Hosting Emulator で確認する。
 
 ```bash
 cd firebase-commons
-firebase emulators:start --only hosting:loquat-counter --project dev
+firebase emulators:start --only hosting:produce-counter --project dev
 ```
 
-dev 環境へのデプロイは、次のコマンドで `nexttree-tools-loquat-dev` だけを対象にする。
+dev 環境へのデプロイは、次のコマンドで `nexttree-tools-produce-dev` だけを対象にする。
 
 ```bash
 cd firebase-commons
-firebase deploy --only hosting:loquat-counter --project dev
+firebase deploy --only hosting:produce-counter --project dev
 ```
 
 prod 環境へは、明示的に承認されたリリース作業でのみデプロイする。

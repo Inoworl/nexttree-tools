@@ -38,18 +38,26 @@ function displayDate(value: string): string {
             </div>
             <span class="record-final">
               <CircleCheck :size="18" aria-hidden="true" />
-              {{ record.finalCount }}個
+              {{ record.finalCount }}{{ record.countUnitLabel }}
             </span>
           </header>
 
           <dl>
             <div>
+              <dt>品目・品種</dt>
+              <dd>{{ record.productLabel }} / {{ record.varietyLabel }}</dd>
+            </div>
+            <div>
               <dt>デモ推定</dt>
-              <dd>{{ record.estimatedCount }}個</dd>
+              <dd>{{ record.estimatedCount }}{{ record.countUnitLabel }}</dd>
             </div>
             <div>
               <dt>人間の修正</dt>
-              <dd>{{ record.correctedCount === null ? '未修正' : `${record.correctedCount}個` }}</dd>
+              <dd>
+                {{ record.correctedCount === null
+                  ? '未修正'
+                  : `${record.correctedCount}${record.countUnitLabel}` }}
+              </dd>
             </div>
             <div class="record-file">
               <dt>写真</dt>

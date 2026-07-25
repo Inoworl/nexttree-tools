@@ -3,7 +3,7 @@ import {
   type DemoCountRecord,
 } from './demo-counter'
 
-export const DEMO_STORAGE_KEY = 'nexttree:biwa-counter:demo:v1'
+export const DEMO_STORAGE_KEY = 'nexttree:produce-counter:demo:v2'
 
 export type DemoRecordStorage = Pick<Storage, 'getItem' | 'setItem'>
 

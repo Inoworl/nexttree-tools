@@ -13,7 +13,7 @@ app.get('/api/health', (c) => {
 const port = Number(process.env.PORT ?? 8787)
 
 serve({ fetch: app.fetch, port }, (info) => {
-  console.log(`biwa-counter backend listening on http://localhost:${info.port}`)
+  console.log(`produce-counter backend listening on http://localhost:${info.port}`)
 })
 
 export default app

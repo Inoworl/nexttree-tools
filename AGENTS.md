@@ -48,7 +48,7 @@
 nexttree-tools/
   AGENTS.md
   apps/
-    biwa-counter/
+    produce-counter/
       frontend/      # Nuxt 3 frontend
       backend/       # Hono backend for Cloud Run
     website/         # 将来のホームページ
@@ -71,7 +71,7 @@ nexttree-tools/
 主なファイル:
 
 - `dos/project-spec.md`
-- `dos/biwa-counter-requirements.md`
+- `dos/produce-counter-requirements.md`
 - `dos/architecture.md`
 - `dos/decisions.md`
 
@@ -146,7 +146,7 @@ AI エージェントが開発の際に読み込んだり確認したりする�
 - API 型は `packages/shared` に置く。
 - 画像解析ロジックは `packages/vision` に分離する。
 - AI 推定値と人間の修正値を分けて扱う。
-- びわ以外にも拡張できるよう `target` で管理する。
+- 他の農産物にも拡張できるよう `productId`、`varietyId`、`countUnit` で管理する。
 
 ## Firebase
 

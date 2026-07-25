@@ -4,7 +4,7 @@
 
 ## ゴール
 
-`nexttree-tools` を pnpm workspace のモノレポとして初期化し、`biwa-counter` の Nuxt frontend と Hono backend がローカルで起動できる最小構成を作る。
+`nexttree-tools` を pnpm workspace のモノレポとして初期化し、`produce-counter` の Nuxt frontend と Hono backend がローカルで起動できる最小構成を作る。
 
 ## 実装範囲
 
@@ -51,8 +51,8 @@
   - `apps/*`
   - `packages/*`
 - Acceptance:
-  - `apps/biwa-counter/frontend`
-  - `apps/biwa-counter/backend`
+  - `apps/produce-counter/frontend`
+  - `apps/produce-counter/backend`
   - `packages/shared`
   - `packages/ui`
   - `packages/vision`
@@ -66,7 +66,7 @@
   - `packages/shared/src/index.ts`
 - Action: create
 - Details:
-  - `CountTarget`
+  - `ProductId`
   - `CountRecord`
   - `HealthResponse`
 - Acceptance:
@@ -89,9 +89,9 @@
 ## Task 5: Hono backend を作る
 
 - File:
-  - `apps/biwa-counter/backend/package.json`
-  - `apps/biwa-counter/backend/src/index.ts`
-  - `apps/biwa-counter/backend/tsconfig.json`
+  - `apps/produce-counter/backend/package.json`
+  - `apps/produce-counter/backend/src/index.ts`
+  - `apps/produce-counter/backend/tsconfig.json`
 - Action: create
 - Details:
   - `GET /api/health` を実装
@@ -104,9 +104,9 @@
 ## Task 6: Nuxt frontend を作る
 
 - File:
-  - `apps/biwa-counter/frontend/package.json`
-  - `apps/biwa-counter/frontend/nuxt.config.ts`
-  - `apps/biwa-counter/frontend/app.vue`
+  - `apps/produce-counter/frontend/package.json`
+  - `apps/produce-counter/frontend/nuxt.config.ts`
+  - `apps/produce-counter/frontend/app.vue`
 - Action: create
 - Details:
   - 写真アップロード画面
