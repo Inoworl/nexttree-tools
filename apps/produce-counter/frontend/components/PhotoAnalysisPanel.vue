@@ -4,6 +4,8 @@ import { ref, watch } from 'vue'
 import type { DemoAnalysis } from '../utils/demo-counter'
 
 const props = defineProps<{
+  productLabel: string
+  countUnitLabel: string
   imageUrl: string | null
   fileName: string | null
   fileSizeLabel: string | null
@@ -60,7 +62,7 @@ function onImageLoad(event: Event) {
     <div class="photo-stage">
       <div v-if="!imageUrl" class="photo-empty">
         <ImageIcon :size="34" :stroke-width="1.5" aria-hidden="true" />
-        <p>びわの写真が選択されていません</p>
+        <p>{{ productLabel }}の写真が選択されていません</p>
       </div>
 
       <figure v-else class="detection-figure">
@@ -108,14 +110,14 @@ function onImageLoad(event: Event) {
     <div class="photo-actions">
       <div class="file-control">
         <input
-          id="biwa-photo"
+          id="produce-photo"
           class="visually-hidden file-input"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           :aria-describedby="fileError ? 'photo-error' : 'photo-format'"
           @change="onFileChange"
         >
-        <label class="button button-secondary" for="biwa-photo">
+        <label class="button button-secondary" for="produce-photo">
           <Upload :size="18" aria-hidden="true" />
           写真を選ぶ
         </label>
@@ -138,7 +140,7 @@ function onImageLoad(event: Event) {
     </p>
 
     <p v-if="analysis" class="detection-summary" aria-live="polite">
-      認識箇所 <strong>{{ analysis.detections.length }}</strong> 件を表示しています。
+      <strong>{{ analysis.detections.length }}{{ countUnitLabel }}</strong>の認識箇所を表示しています。
     </p>
   </section>
 </template>

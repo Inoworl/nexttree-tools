@@ -10,7 +10,7 @@
 
 - 複数の業務アプリを同一リポジトリで管理できる
 - 共通型、UI、画像解析ロジックを `packages` として共有できる
-- `biwa-counter` 以外のアプリを追加しやすい
+- `produce-counter` 以外のアプリを追加しやすい
 
 ## ADR-002: Backend は Firebase Functions ではなく Cloud Run + Hono にする
 

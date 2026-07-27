@@ -1,18 +1,16 @@
-import type { CountTarget } from '@nexttree/shared'
+import type { CountConfiguration } from '@nexttree/shared'
 
 /**
  * 画像解析の入力。初期段階では画像バイナリの受け渡し方法のみ定義する。
  */
-export type AnalyzeCountInput = {
-  target: CountTarget
+export type AnalyzeCountInput = CountConfiguration & {
   image: Uint8Array
 }
 
 /**
  * 画像解析の結果。AI 推定値のみを返し、修正値は扱わない。
  */
-export type AnalyzeCountResult = {
-  target: CountTarget
+export type AnalyzeCountResult = CountConfiguration & {
   estimatedCount: number
 }
 

@@ -2,14 +2,14 @@
 
 Next Tree の業務ツール群を管理する pnpm workspace モノレポです。
 
-最初のアプリは `biwa-counter` で、写真からびわの売れた個数を推定し、必要に応じて人間が修正して記録する Web アプリです。
+最初のアプリは `produce-counter` で、写真から農産物の数量を推定し、必要に応じて人間が修正して記録する Web アプリです。現在の確認用UIは、びわ・キウイ・栗、品種、パック・個・箱の単位を選択できます。
 
 ## Structure
 
 ```text
 nexttree-tools/
   apps/
-    biwa-counter/
+    produce-counter/
       frontend/      # Nuxt 3 frontend
       backend/       # Hono backend (Cloud Run 前提)
   packages/
@@ -65,13 +65,17 @@ pnpm dev
 - Backend: http://localhost:8787
 - Health Check: `GET http://localhost:8787/api/health` が `{ "status": "ok" }` を返します
 
-## 初期実装範囲
+## 現在の実装範囲
 
 - pnpm workspace によるモノレポ初期化
-- Nuxt frontend の最小構成(写真アップロード画面の仮UI)
+- Nuxt frontend の確認用UI
+- 商品・品種・カウント単位の選択
+- 写真アップロード、デモ解析、認識箇所の赤枠表示
+- 推定数の人間による修正と、店名・業務日付を含むブラウザ保存
 - Hono backend の最小構成(`GET /api/health`)
-- `packages/shared` の共通型 (`CountTarget` / `CountRecord` / `HealthResponse`)
+- `packages/shared` の共通型 (`ProductId` / `CountUnit` / `CountRecord` / `HealthResponse`)
 - `packages/vision` の画像解析プレースホルダ
+- Nuxt/Vueテンプレートを含むfrontend型検査
 - `.env.example`
 - `firebase-commons/` の設定置き場
 
@@ -86,4 +90,4 @@ pnpm dev
 - 決済
 - 高度な権限管理
 
-仕様の詳細は [dos/project-spec.md](dos/project-spec.md) と [dos/biwa-counter-requirements.md](dos/biwa-counter-requirements.md) を参照してください。
+仕様の詳細は [dos/project-spec.md](dos/project-spec.md) と [dos/produce-counter-requirements.md](dos/produce-counter-requirements.md) を参照してください。

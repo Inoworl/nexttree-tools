@@ -1,6 +1,6 @@
 # AIエージェント用 要件参照
 
-更新日: 2026-07-06
+更新日: 2026-07-26
 
 ## このファイルの位置づけ
 
@@ -11,19 +11,20 @@
 ## 参照すべき仕様
 
 - プロジェクト全体: `dos/project-spec.md`
-- `biwa-counter` 要件: `dos/biwa-counter-requirements.md`
+- `produce-counter` 要件: `dos/produce-counter-requirements.md`
 - アーキテクチャ: `dos/architecture.md`
 - 設計判断: `dos/decisions.md`
 
 ## 初期実装で満たすこと
 
 - pnpm workspace によるモノレポを作る
-- `apps/biwa-counter/frontend` で Nuxt 3 を起動できる
-- `apps/biwa-counter/backend` で Hono API を起動できる
+- `apps/produce-counter/frontend` で Nuxt 3 を起動できる
+- `apps/produce-counter/backend` で Hono API を起動できる
 - `GET /api/health` が `{ "status": "ok" }` を返す
 - `packages/shared` に共通型を置く
 - `packages/vision` を画像解析ロジックの置き場として作る
-- 画像アップロード画面の仮UIを作る
+- 商品・品種・カウント単位を選べる画像アップロード画面を作る
+- デモ解析、赤枠表示、人間による修正、店名・業務日付のブラウザ保存を行える
 - `.env.example` を作る
 - `README.md` にセットアップ手順を書く
 
@@ -37,12 +38,10 @@
 - 管理画面
 - 決済
 - 高度な権限管理
-- びわ以外の対象追加
 
 ## 注意
 
-`finalCount` の扱いは `dos/biwa-counter-requirements.md` に従う。
+`finalCount` の扱いは `dos/produce-counter-requirements.md` に従う。
 
 - `correctedCount` があれば `correctedCount`
 - なければ `estimatedCount`
-

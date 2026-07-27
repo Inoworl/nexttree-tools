@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Calendar, Save, Store } from '@lucide/vue'
+import type { CountUnit, ProductId } from '@nexttree/shared'
 import { ref } from 'vue'
+import type {
+  CountUnitOption,
+  ProductOption,
+  VarietyOption,
+} from '../utils/demo-counter'
 
 export type RecordFormErrors = {
   correctedCount: string | null
@@ -9,6 +15,13 @@ export type RecordFormErrors = {
 }
 
 const props = defineProps<{
+  productId: ProductId
+  productOptions: readonly ProductOption[]
+  varietyId: string
+  varietyOptions: readonly VarietyOption[]
+  countUnit: CountUnit
+  countUnitOptions: readonly CountUnitOption[]
+  countUnitLabel: string
   estimatedCount: number | null
   finalCount: number | null
   correctedCountInput: string
@@ -20,6 +33,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'update:product-id': [value: ProductId]
+  'update:variety-id': [value: string]
+  'update:count-unit': [value: CountUnit]
   'update:corrected-count-input': [value: string]
   'update:store-name': [value: string]
   'update:record-date': [value: string]
@@ -29,6 +45,20 @@ const emit = defineEmits<{
 const correctedCountElement = ref<HTMLInputElement | null>(null)
 const storeNameElement = ref<HTMLInputElement | null>(null)
 const recordDateElement = ref<HTMLInputElement | null>(null)
+
+function emitSelect(
+  event: Event,
+  name: 'product-id' | 'variety-id' | 'count-unit',
+) {
+  const value = (event.target as HTMLSelectElement).value
+  if (name === 'product-id') {
+    emit('update:product-id', value as ProductId)
+  } else if (name === 'variety-id') {
+    emit('update:variety-id', value)
+  } else {
+    emit('update:count-unit', value as CountUnit)
+  }
+}
 
 function emitInput(
   event: Event,
@@ -58,7 +88,7 @@ defineExpose({ focusFirstError })
     <div class="section-heading">
       <div>
         <p class="section-kicker">02 / 確認と保存</p>
-        <h2 id="record-heading">個数と記録情報</h2>
+        <h2 id="record-heading">数量と記録情報</h2>
       </div>
     </div>
 
@@ -67,7 +97,7 @@ defineExpose({ focusFirstError })
         <dt>デモ推定数</dt>
         <dd data-testid="estimated-count">
           <template v-if="estimatedCount !== null">
-            {{ estimatedCount }}<span>個</span>
+            {{ estimatedCount }}<span>{{ countUnitLabel }}</span>
           </template>
           <template v-else>--</template>
         </dd>
@@ -76,7 +106,7 @@ defineExpose({ focusFirstError })
         <dt>記録する数</dt>
         <dd data-testid="final-count">
           <template v-if="finalCount !== null">
-            {{ finalCount }}<span>個</span>
+            {{ finalCount }}<span>{{ countUnitLabel }}</span>
           </template>
           <template v-else>--</template>
         </dd>
@@ -84,6 +114,63 @@ defineExpose({ focusFirstError })
     </dl>
 
     <form class="record-form" novalidate @submit.prevent="emit('save')">
+      <fieldset>
+        <legend>対象</legend>
+
+        <div class="configuration-grid">
+          <div class="field-group">
+            <label for="product-id">品目</label>
+            <select
+              id="product-id"
+              :value="productId"
+              @change="emitSelect($event, 'product-id')"
+            >
+              <option
+                v-for="product in productOptions"
+                :key="product.id"
+                :value="product.id"
+              >
+                {{ product.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="variety-id">品種</label>
+            <select
+              id="variety-id"
+              :value="varietyId"
+              @change="emitSelect($event, 'variety-id')"
+            >
+              <option
+                v-for="variety in varietyOptions"
+                :key="variety.id"
+                :value="variety.id"
+              >
+                {{ variety.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="count-unit">数え方</label>
+            <select
+              id="count-unit"
+              :value="countUnit"
+              @change="emitSelect($event, 'count-unit')"
+            >
+              <option
+                v-for="unit in countUnitOptions"
+                :key="unit.id"
+                :value="unit.id"
+              >
+                {{ unit.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
       <div class="field-group">
         <label for="corrected-count">人間による修正数</label>
         <input
@@ -234,6 +321,12 @@ defineExpose({ focusFirstError })
   margin-top: 24px;
 }
 
+.configuration-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .field-group {
   display: grid;
   gap: 8px;
@@ -248,7 +341,8 @@ defineExpose({ focusFirstError })
   font-weight: 700;
 }
 
-.field-group input {
+.field-group input,
+.field-group select {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -259,11 +353,13 @@ defineExpose({ focusFirstError })
   border-radius: 5px;
 }
 
-.field-group input:hover {
+.field-group input:hover,
+.field-group select:hover {
   border-color: #6f7d73;
 }
 
-.field-group input:focus-visible {
+.field-group input:focus-visible,
+.field-group select:focus-visible {
   border-color: var(--color-accent-strong);
   outline: 3px solid var(--color-focus);
   outline-offset: 1px;
@@ -303,6 +399,12 @@ legend {
   margin: 0;
   color: var(--color-accent-strong);
   font-weight: 700;
+}
+
+@media (max-width: 479px) {
+  .configuration-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 359px) {

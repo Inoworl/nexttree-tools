@@ -24,7 +24,7 @@ services:
 
   frontend:
     <<: *node-dev
-    working_dir: /workspace/apps/biwa-counter/frontend
+    working_dir: /workspace/apps/produce-counter/frontend
     command: sh -lc "corepack enable && pnpm dev --host 0.0.0.0 --port 3000"
     depends_on:
       deps:
@@ -41,7 +41,7 @@ services:
 
   backend:
     <<: *node-dev
-    working_dir: /workspace/apps/biwa-counter/backend
+    working_dir: /workspace/apps/produce-counter/backend
     command: sh -lc "corepack enable && pnpm dev"
     depends_on:
       deps:

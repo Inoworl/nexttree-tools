@@ -1,5 +1,5 @@
 {
-  "name": "@nexttree/biwa-counter-frontend",
+  "name": "@nexttree/produce-counter-frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
     "test": "vitest run --no-cache"
   },
   "dependencies": {
@@ -20,6 +21,8 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/test-utils": "^2.4.11",
     "happy-dom": "^20.10.6",
+    "typescript": "~5.9.3",
+    "vue-tsc": "^3.3.8",
     "vitest": "^3.2.4"
   }
 }

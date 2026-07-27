@@ -7,7 +7,7 @@
 ```text
 nexttree-tools
 ├── apps
-│   ├── biwa-counter
+│   ├── produce-counter
 │   │   ├── frontend
 │   │   └── backend
 │   ├── website
@@ -18,7 +18,7 @@ nexttree-tools
 │   └── vision
 ├── dos
 │   ├── project-spec.md
-│   ├── biwa-counter-requirements.md
+│   ├── produce-counter-requirements.md
 │   ├── architecture.md
 │   └── decisions.md
 ├── firebase-commons
@@ -49,8 +49,8 @@ nexttree-tools
 
 | パス | 責務 |
 | --- | --- |
-| `apps/biwa-counter/frontend` | Nuxt 3 によるユーザー画面 |
-| `apps/biwa-counter/backend` | Hono による Cloud Run 前提の業務API |
+| `apps/produce-counter/frontend` | Nuxt 3 によるユーザー画面 |
+| `apps/produce-counter/backend` | Hono による Cloud Run 前提の業務API |
 | `apps/website` | 将来のホームページ |
 | `apps/admin` | 将来の管理画面 |
 | `packages/shared` | API 型、共通型、共有ユーティリティ |
@@ -101,7 +101,7 @@ Cloud Run は以下に使う。
 ```text
 apps/* -> packages/shared
 apps/* -> packages/ui
-apps/biwa-counter/backend -> packages/vision
+apps/produce-counter/backend -> packages/vision
 packages/vision -> external AI providers
 ```
 

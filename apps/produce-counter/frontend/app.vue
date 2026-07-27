@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ShieldCheck, Sprout } from '@lucide/vue'
-import { resolveFinalCount } from '@nexttree/shared'
+import {
+  resolveFinalCount,
+  type CountUnit,
+  type ProductId,
+} from '@nexttree/shared'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import CountRecordForm, {
   type RecordFormErrors,
@@ -9,9 +13,14 @@ import PhotoAnalysisPanel from './components/PhotoAnalysisPanel.vue'
 import RecentRecords from './components/RecentRecords.vue'
 import { useDemoRecords } from './composables/useDemoRecords'
 import {
+  COUNT_UNIT_OPTIONS,
+  PRODUCT_OPTIONS,
   createDemoAnalysis,
   createDemoRecord,
   formatDateInputValue,
+  getCountUnitLabel,
+  getProductOption,
+  getVarietyOption,
   parseCorrectedCount,
   validateImageDimensions,
   validateImageFile,
@@ -24,9 +33,12 @@ type RecordFormHandle = {
 }
 
 useHead({
-  title: 'びわカウンター | Next Tree',
+  title: '農産物カウンター | Next Tree',
 })
 
+const productId = ref<ProductId>('loquat')
+const varietyId = ref('mogi')
+const countUnit = ref<CountUnit>('pack')
 const selectedFile = ref<File | null>(null)
 const imageUrl = ref<string | null>(null)
 const fileError = ref<string | null>(null)
@@ -47,6 +59,13 @@ const recordForm = ref<RecordFormHandle | null>(null)
 let analysisRequestId = 0
 
 const { records, storageError, saveRecord } = useDemoRecords()
+
+const selectedProduct = computed(() => getProductOption(productId.value))
+const varietyOptions = computed(() => selectedProduct.value.varieties)
+const selectedVariety = computed(() =>
+  getVarietyOption(productId.value, varietyId.value),
+)
+const countUnitLabel = computed(() => getCountUnitLabel(countUnit.value))
 
 const correctedCount = computed(() =>
   parseCorrectedCount(correctedCountInput.value),
@@ -79,6 +98,37 @@ onBeforeUnmount(() => {
   analysisRequestId += 1
   revokeImageUrl()
 })
+
+function onProductIdUpdate(value: ProductId) {
+  const product = getProductOption(value)
+  const defaultVariety = product.varieties[0]
+  if (!defaultVariety) return
+
+  productId.value = value
+  varietyId.value = defaultVariety.id
+  countUnit.value = defaultVariety.defaultCountUnit
+  resetAnalysisForConfigurationChange()
+}
+
+function onVarietyIdUpdate(value: string) {
+  const variety = getVarietyOption(productId.value, value)
+  varietyId.value = value
+  countUnit.value = variety.defaultCountUnit
+  resetAnalysisForConfigurationChange()
+}
+
+function onCountUnitUpdate(value: CountUnit) {
+  countUnit.value = value
+  resetAnalysisForConfigurationChange()
+}
+
+function resetAnalysisForConfigurationChange() {
+  analysisRequestId += 1
+  isAnalyzing.value = false
+  analysis.value = null
+  correctedCountInput.value = ''
+  saveMessage.value = null
+}
 
 function onFileSelected(file: File) {
   const error = validateImageFile(file)
@@ -150,6 +200,12 @@ async function onSave() {
   const timestamp = new Date().toISOString()
   const record = createDemoRecord({
     id: window.crypto.randomUUID(),
+    productId: productId.value,
+    productLabel: selectedProduct.value.label,
+    varietyId: varietyId.value,
+    varietyLabel: selectedVariety.value.label,
+    countUnit: countUnit.value,
+    countUnitLabel: countUnitLabel.value,
     fileName: selectedFile.value.name,
     storeName: storeName.value,
     recordDate: recordDate.value,
@@ -202,11 +258,11 @@ function revokeImageUrl() {
   <div class="app-shell">
     <header class="app-header">
       <div class="header-inner">
-        <a class="brand" href="#top" aria-label="びわカウンターの先頭へ">
+        <a class="brand" href="#top" aria-label="農産物カウンターの先頭へ">
           <span class="brand-mark" aria-hidden="true">
             <Sprout :size="22" />
           </span>
-          <span>びわカウンター</span>
+          <span>農産物カウンター</span>
         </a>
         <span class="demo-badge">UI確認用デモ</span>
       </div>
@@ -215,8 +271,8 @@ function revokeImageUrl() {
     <main id="top" class="page-main">
       <section class="page-intro" aria-labelledby="page-title">
         <div>
-          <p class="eyebrow">販売個数の確認・記録</p>
-          <h1 id="page-title">写真から個数を確認する</h1>
+          <p class="eyebrow">販売数量の確認・記録</p>
+          <h1 id="page-title">写真から数量を確認する</h1>
         </div>
         <div class="demo-notice">
           <ShieldCheck :size="20" aria-hidden="true" />
@@ -232,6 +288,8 @@ function revokeImageUrl() {
 
       <div class="workspace">
         <PhotoAnalysisPanel
+          :product-label="selectedProduct.label"
+          :count-unit-label="countUnitLabel"
           :image-url="imageUrl"
           :file-name="selectedFile?.name ?? null"
           :file-size-label="fileSizeLabel"
@@ -246,6 +304,13 @@ function revokeImageUrl() {
 
         <CountRecordForm
           ref="recordForm"
+          :product-id="productId"
+          :product-options="PRODUCT_OPTIONS"
+          :variety-id="varietyId"
+          :variety-options="varietyOptions"
+          :count-unit="countUnit"
+          :count-unit-options="COUNT_UNIT_OPTIONS"
+          :count-unit-label="countUnitLabel"
           :estimated-count="analysis?.estimatedCount ?? null"
           :final-count="finalCount"
           :corrected-count-input="correctedCountInput"
@@ -254,6 +319,9 @@ function revokeImageUrl() {
           :errors="formErrors"
           :save-message="saveMessage"
           :save-error="storageError"
+          @update:product-id="onProductIdUpdate"
+          @update:variety-id="onVarietyIdUpdate"
+          @update:count-unit="onCountUnitUpdate"
           @update:corrected-count-input="onCorrectedCountUpdate"
           @update:store-name="onStoreNameUpdate"
           @update:record-date="onRecordDateUpdate"
@@ -265,7 +333,7 @@ function revokeImageUrl() {
     </main>
 
     <footer class="app-footer">
-      <p>Next Tree / biwa-counter demo</p>
+      <p>Next Tree / produce-counter demo</p>
     </footer>
   </div>
 </template>

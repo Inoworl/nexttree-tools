@@ -6,15 +6,15 @@
   "targets": {
     "inoworl-nexttree-tools-dev": {
       "hosting": {
-        "loquat-counter": [
-          "nexttree-tools-loquat-dev"
+        "produce-counter": [
+          "nexttree-tools-produce-dev"
         ]
       }
     },
     "inoworl-nexttree-tools-prod": {
       "hosting": {
-        "loquat-counter": [
-          "nexttree-tools-loquat-prod"
+        "produce-counter": [
+          "nexttree-tools-produce-prod"
         ]
       }
     }

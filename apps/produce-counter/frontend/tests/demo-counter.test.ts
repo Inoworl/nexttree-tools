@@ -1,5 +1,8 @@
+import type { CountUnit, ProductId } from '@nexttree/shared'
 import { describe, expect, it } from 'vitest'
 import {
+  COUNT_UNIT_OPTIONS,
+  PRODUCT_OPTIONS,
   createDemoAnalysis,
   createDemoRecord,
   formatDateInputValue,
@@ -9,17 +12,76 @@ import {
   validateImageFile,
   validateRecordDetails,
   type DemoCountRecord,
+  getCountUnitLabel,
+  getProductOption,
+  getVarietyOption,
 } from '../utils/demo-counter'
 
+describe('商品・品種・単位マスタ', () => {
+  it('びわ・キウイ・栗と全品種の既定単位を公開する', () => {
+    expect(PRODUCT_OPTIONS).toEqual([
+      {
+        id: 'loquat',
+        label: 'びわ',
+        varieties: [
+          { id: 'mogi', label: '茂木', defaultCountUnit: 'pack' },
+          { id: 'tanaka', label: '田中', defaultCountUnit: 'pack' },
+        ],
+      },
+      {
+        id: 'kiwi',
+        label: 'キウイ',
+        varieties: [
+          { id: 'hayward', label: 'ヘイワード', defaultCountUnit: 'piece' },
+          { id: 'gold', label: 'ゴールド', defaultCountUnit: 'piece' },
+        ],
+      },
+      {
+        id: 'chestnut',
+        label: '栗',
+        varieties: [
+          { id: 'tsukuba', label: '筑波', defaultCountUnit: 'pack' },
+          { id: 'ginyose', label: '銀寄', defaultCountUnit: 'pack' },
+        ],
+      },
+    ])
+  })
+
+  it('商品と品種の設定をIDで取得できる', () => {
+    expect(getProductOption('kiwi').label).toBe('キウイ')
+    expect(getVarietyOption('chestnut', 'ginyose').label).toBe('銀寄')
+  })
+
+  it('単位コードを日本語表示へ変換する', () => {
+    expect(COUNT_UNIT_OPTIONS).toHaveLength(3)
+    expect(getCountUnitLabel('pack')).toBe('パック')
+    expect(getCountUnitLabel('piece')).toBe('個')
+    expect(getCountUnitLabel('box')).toBe('箱')
+  })
+})
+
+type MakeRecordOverrides = Partial<
+  Omit<DemoCountRecord, 'productId' | 'countUnit'>
+> & {
+  productId?: ProductId
+  countUnit?: CountUnit
+}
+
 function makeRecord(
-  overrides: Partial<DemoCountRecord> = {},
+  overrides: MakeRecordOverrides = {},
 ): DemoCountRecord {
   return createDemoRecord({
     id: 'demo-1',
     createdAt: '2026-07-15T10:00:00.000Z',
-    fileName: 'biwa.jpg',
+    fileName: 'produce.jpg',
     storeName: '港店',
     recordDate: '2026-07-14',
+    productId: 'loquat',
+    productLabel: 'びわ',
+    varietyId: 'mogi',
+    varietyLabel: '茂木',
+    countUnit: 'pack',
+    countUnitLabel: 'パック',
     estimatedCount: 9,
     correctedCount: null,
     ...overrides,
@@ -85,11 +147,34 @@ describe('parseCorrectedCount', () => {
 })
 
 describe('createDemoRecord', () => {
-  it('デモ専用のスキーマ情報を付与する', () => {
+  it('汎用デモ用のv2スキーマ情報を付与する', () => {
     expect(makeRecord()).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       source: 'demo',
-      target: 'biwa',
+      productId: 'loquat',
+      productLabel: 'びわ',
+      varietyId: 'mogi',
+      varietyLabel: '茂木',
+      countUnit: 'pack',
+      countUnitLabel: 'パック',
+    })
+  })
+
+  it('商品・品種・単位を保存時の値で保持する', () => {
+    expect(makeRecord({
+      productId: 'kiwi',
+      productLabel: '旧キウイ名',
+      varietyId: 'hayward',
+      varietyLabel: '旧ヘイワード名',
+      countUnit: 'piece',
+      countUnitLabel: '旧個数表記',
+    })).toMatchObject({
+      productId: 'kiwi',
+      productLabel: '旧キウイ名',
+      varietyId: 'hayward',
+      varietyLabel: '旧ヘイワード名',
+      countUnit: 'piece',
+      countUnitLabel: '旧個数表記',
     })
   })
 
@@ -162,6 +247,63 @@ describe('parseStoredDemoRecords', () => {
   it('壊れたJSONや配列以外は空の記録として扱う', () => {
     expect(parseStoredDemoRecords('{broken')).toEqual([])
     expect(parseStoredDemoRecords('{"id":"demo-1"}')).toEqual([])
+  })
+
+  it('びわ専用のv1記録をv2記録として混在させない', () => {
+    expect(parseStoredDemoRecords(JSON.stringify([{
+      ...makeRecord(),
+      schemaVersion: 1,
+      target: 'biwa',
+    }]))).toEqual([])
+  })
+
+
+  it.each([
+    'productId',
+    'productLabel',
+    'varietyId',
+    'varietyLabel',
+    'countUnit',
+  ] as const)('v2記録の必須項目 %s が欠落・null・空白なら除外する', (field) => {
+    for (const invalidValue of [undefined, null, '   ']) {
+      const invalidRecord: Record<string, unknown> = { ...makeRecord() }
+      if (invalidValue === undefined) delete invalidRecord[field]
+      else invalidRecord[field] = invalidValue
+
+      expect(parseStoredDemoRecords(JSON.stringify([invalidRecord]))).toEqual([])
+    }
+  })
+
+  it.each([null, '', '   '])('単位表示名が %s なら除外する', (countUnitLabel) => {
+    expect(parseStoredDemoRecords(JSON.stringify([{
+      ...makeRecord(),
+      countUnitLabel,
+    }]))).toEqual([])
+  })
+
+  it('単位表示名のない旧v2記録は既知の単位コードから補完する', () => {
+    const oldV2Record: Record<string, unknown> = { ...makeRecord() }
+    delete oldV2Record.countUnitLabel
+
+    expect(parseStoredDemoRecords(JSON.stringify([oldV2Record]))).toEqual([
+      makeRecord(),
+    ])
+  })
+
+  it('現在のマスタにない過去の商品・品種・単位もスナップショットから復元する', () => {
+    const legacyRecord = {
+      ...makeRecord(),
+      productId: 'retired-product',
+      productLabel: '旧商品',
+      varietyId: 'retired-variety',
+      varietyLabel: '旧品種',
+      countUnit: 'bundle',
+      countUnitLabel: '束',
+    }
+
+    expect(parseStoredDemoRecords(JSON.stringify([legacyRecord]))).toEqual([
+      legacyRecord,
+    ])
   })
 
   it('正しいデモ記録を復元する', () => {
