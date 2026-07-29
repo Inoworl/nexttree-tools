@@ -15,7 +15,7 @@ function displayDate(value: string): string {
   <section class="records-section" aria-labelledby="records-heading">
     <div class="records-heading">
       <div>
-        <p class="section-kicker">03 / 保存結果</p>
+        <p class="section-kicker">04 / 保存履歴</p>
         <h2 id="records-heading">最近の記録</h2>
       </div>
       <span class="record-count">{{ records.length }}件</span>
@@ -31,7 +31,7 @@ function displayDate(value: string): string {
         <article class="record-item" data-testid="recent-record">
           <header>
             <div>
-              <p class="record-store">{{ record.storeName }}</p>
+              <p class="record-store">{{ record.destinationName }}</p>
               <time :datetime="record.recordDate">
                 {{ displayDate(record.recordDate) }}
               </time>

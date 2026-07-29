@@ -3,7 +3,8 @@ import {
   type DemoCountRecord,
 } from './demo-counter'
 
-export const DEMO_STORAGE_KEY = 'nexttree:produce-counter:demo:v2'
+export const DEMO_STORAGE_KEY = 'nexttree:produce-counter:demo:v3'
+const LEGACY_DEMO_STORAGE_KEY = 'nexttree:produce-counter:demo:v2'
 
 export type DemoRecordStorage = Pick<Storage, 'getItem' | 'setItem'>
 
@@ -16,8 +17,24 @@ export function loadDemoRecords(
   storage: DemoRecordStorage,
 ): DemoStorageResult {
   try {
+    const legacyRecords = parseStoredDemoRecords(
+      storage.getItem(LEGACY_DEMO_STORAGE_KEY),
+    )
+    const currentRecords = parseStoredDemoRecords(
+      storage.getItem(DEMO_STORAGE_KEY),
+    )
+    const recordsById = new Map(
+      legacyRecords.map(record => [record.id, record]),
+    )
+
+    for (const record of currentRecords) {
+      recordsById.set(record.id, record)
+    }
+
     return {
-      records: parseStoredDemoRecords(storage.getItem(DEMO_STORAGE_KEY)),
+      records: parseStoredDemoRecords(
+        JSON.stringify([...recordsById.values()]),
+      ),
       error: null,
     }
   } catch {

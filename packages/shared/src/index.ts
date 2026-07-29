@@ -17,14 +17,18 @@ export type CountConfiguration = {
   countUnit: CountUnit
 }
 
-export type CountRecord = CountConfiguration & {
+export type CountWorkContext = {
+  destinationId: string
+  destinationName: string
+  recordDate: string
+}
+
+export type CountRecord = CountConfiguration & CountWorkContext & {
   id: string
   productLabel: string
   varietyLabel: string
   countUnitLabel: string
   imageUrl: string
-  storeName: string
-  recordDate: string
   estimatedCount: number
   correctedCount: number | null
   finalCount: number

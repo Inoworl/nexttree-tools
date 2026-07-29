@@ -4,7 +4,7 @@ import { ref, watch } from 'vue'
 import type { DemoAnalysis } from '../utils/demo-counter'
 
 const props = defineProps<{
-  productLabel: string
+  productLabel: string | null
   countUnitLabel: string
   imageUrl: string | null
   fileName: string | null
@@ -12,6 +12,7 @@ const props = defineProps<{
   fileError: string | null
   analysis: DemoAnalysis | null
   isAnalyzing: boolean
+  disabled: boolean
 }>()
 
 const MAX_IMAGE_HEIGHT = 620
@@ -31,7 +32,7 @@ const emit = defineEmits<{
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
-  if (file) emit('file-selected', file)
+  if (file && !props.disabled) emit('file-selected', file)
   input.value = ''
 }
 
@@ -51,7 +52,7 @@ function onImageLoad(event: Event) {
   <section class="tool-panel photo-panel" aria-labelledby="photo-heading">
     <div class="section-heading">
       <div>
-        <p class="section-kicker">01 / 写真</p>
+        <p class="section-kicker">02 / 写真</p>
         <h2 id="photo-heading">写真と認識箇所</h2>
       </div>
       <span v-if="analysis" class="status-label status-label-success">
@@ -62,7 +63,8 @@ function onImageLoad(event: Event) {
     <div class="photo-stage">
       <div v-if="!imageUrl" class="photo-empty">
         <ImageIcon :size="34" :stroke-width="1.5" aria-hidden="true" />
-        <p>{{ productLabel }}の写真が選択されていません</p>
+        <p v-if="disabled">品目を選択すると写真を追加できます</p>
+        <p v-else>{{ productLabel }}の写真が選択されていません</p>
       </div>
 
       <figure v-else class="detection-figure">
@@ -114,10 +116,16 @@ function onImageLoad(event: Event) {
           class="visually-hidden file-input"
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          :aria-describedby="fileError ? 'photo-error' : 'photo-format'"
+          :disabled="disabled"
+          :aria-describedby="disabled ? 'photo-disabled' : fileError ? 'photo-error' : 'photo-format'"
           @change="onFileChange"
         >
-        <label class="button button-secondary" for="produce-photo">
+        <label
+          class="button button-secondary"
+          :class="{ 'is-disabled': disabled }"
+          for="produce-photo"
+          :aria-disabled="disabled ? 'true' : undefined"
+        >
           <Upload :size="18" aria-hidden="true" />
           写真を選ぶ
         </label>
@@ -125,8 +133,9 @@ function onImageLoad(event: Event) {
 
       <button
         class="button button-primary"
+        data-testid="analyze-photo"
         type="button"
-        :disabled="!imageUrl || isAnalyzing"
+        :disabled="disabled || !imageUrl || isAnalyzing"
         @click="emit('analyze')"
       >
         <ScanLine :size="18" aria-hidden="true" />
@@ -134,7 +143,10 @@ function onImageLoad(event: Event) {
       </button>
     </div>
 
-    <p id="photo-format" class="field-hint">JPEG・PNG・WebP / 10MB以下</p>
+    <p v-if="disabled" id="photo-disabled" class="field-hint">
+      先に品目を選択してください。
+    </p>
+    <p v-else id="photo-format" class="field-hint">JPEG・PNG・WebP / 10MB以下</p>
     <p v-if="fileError" id="photo-error" class="field-error" role="alert">
       {{ fileError }}
     </p>
@@ -147,6 +159,7 @@ function onImageLoad(event: Event) {
 
 <style scoped>
 .photo-panel {
+  grid-area: photo;
   min-width: 0;
 }
 
@@ -273,6 +286,10 @@ figcaption span:first-child {
 .file-input:focus-visible + .button {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
+}
+
+.is-disabled {
+  pointer-events: none;
 }
 
 .field-hint {
