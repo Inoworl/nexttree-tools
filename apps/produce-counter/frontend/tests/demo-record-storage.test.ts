@@ -14,7 +14,8 @@ function makeRecord(id = 'demo-1', second = 0) {
     id,
     createdAt: timestamp,
     fileName: `${id}.jpg`,
-    storeName: '港店',
+    destinationId: 'harbor-store',
+    destinationName: '港青果店（デモ）',
     recordDate: '2026-07-14',
     productId: 'loquat',
     productLabel: 'びわ',
@@ -48,8 +49,8 @@ function createMemoryStorage(initialValue: string | null = null): {
 }
 
 describe('DEMO_STORAGE_KEY', () => {
-  it('produce-counter専用のv2キーを使う', () => {
-    expect(DEMO_STORAGE_KEY).toBe('nexttree:produce-counter:demo:v2')
+  it('produce-counter専用のv3キーを使う', () => {
+    expect(DEMO_STORAGE_KEY).toBe('nexttree:produce-counter:demo:v3')
   })
 })
 
@@ -75,6 +76,78 @@ describe('loadDemoRecords', () => {
     expect(loadDemoRecords(storage)).toEqual({
       records: [],
       error: 'このブラウザの保存済み記録を読み込めませんでした。',
+    })
+  })
+
+  it('v2記録の店名を卸先スナップショットへ移行する', () => {
+    const legacyRecord = {
+      ...makeRecord(),
+      schemaVersion: 2,
+      storeName: '旧店舗',
+    }
+    delete (legacyRecord as Partial<typeof legacyRecord>).destinationId
+    delete (legacyRecord as Partial<typeof legacyRecord>).destinationName
+    const { storage } = createMemoryStorage()
+    storage.setItem(
+      'nexttree:produce-counter:demo:v2',
+      JSON.stringify([legacyRecord]),
+    )
+
+    expect(loadDemoRecords(storage).records[0]).toMatchObject({
+      schemaVersion: 3,
+      destinationId: 'legacy',
+      destinationName: '旧店舗',
+    })
+  })
+
+  it('v3が壊れていても正常なv2記録を復元する', () => {
+    const legacyRecord = {
+      ...makeRecord(),
+      schemaVersion: 2,
+      storeName: '旧店舗',
+    }
+    delete (legacyRecord as Partial<typeof legacyRecord>).destinationId
+    delete (legacyRecord as Partial<typeof legacyRecord>).destinationName
+    const { storage } = createMemoryStorage('{broken')
+    storage.setItem(
+      'nexttree:produce-counter:demo:v2',
+      JSON.stringify([legacyRecord]),
+    )
+
+    expect(loadDemoRecords(storage).records[0]).toMatchObject({
+      destinationId: 'legacy',
+      destinationName: '旧店舗',
+    })
+  })
+
+  it('v2とv3をIDで統合し、同一IDはv3を優先する', () => {
+    const current = makeRecord('same-id')
+    const duplicateLegacy = {
+      ...current,
+      schemaVersion: 2,
+      storeName: '旧店舗',
+    }
+    delete (duplicateLegacy as Partial<typeof duplicateLegacy>).destinationId
+    delete (duplicateLegacy as Partial<typeof duplicateLegacy>).destinationName
+    const legacyOnly = {
+      ...makeRecord('legacy-only', 1),
+      schemaVersion: 2,
+      storeName: '旧卸先',
+    }
+    delete (legacyOnly as Partial<typeof legacyOnly>).destinationId
+    delete (legacyOnly as Partial<typeof legacyOnly>).destinationName
+    const { storage } = createMemoryStorage(JSON.stringify([current]))
+    storage.setItem(
+      'nexttree:produce-counter:demo:v2',
+      JSON.stringify([duplicateLegacy, legacyOnly]),
+    )
+
+    const records = loadDemoRecords(storage).records
+    expect(records).toHaveLength(2)
+    expect(records.find(record => record.id === 'same-id')).toEqual(current)
+    expect(records.find(record => record.id === 'legacy-only')).toMatchObject({
+      destinationId: 'legacy',
+      destinationName: '旧卸先',
     })
   })
 })

@@ -93,9 +93,11 @@ export type DemoAnalysis = {
 }
 
 export type DemoCountRecord = {
-  schemaVersion: 2
+  schemaVersion: 3
   source: 'demo'
   id: string
+  destinationId: string
+  destinationName: string
   productId: string
   productLabel: string
   varietyId: string
@@ -103,7 +105,6 @@ export type DemoCountRecord = {
   countUnit: string
   countUnitLabel: string
   fileName: string
-  storeName: string
   recordDate: string
   estimatedCount: number
   correctedCount: number | null
@@ -133,7 +134,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ])
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_IMAGE_PIXELS = 25_000_000
-const MAX_STORE_NAME_LENGTH = 80
+const MAX_SNAPSHOT_LABEL_LENGTH = 80
 const MAX_STORED_RECORDS = 20
 
 const DEMO_DETECTIONS: DetectionBox[] = [
@@ -182,9 +183,11 @@ export function createDemoRecord(
   input: CreateDemoRecordInput,
 ): DemoCountRecord {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     source: 'demo',
     id: input.id,
+    destinationId: input.destinationId,
+    destinationName: input.destinationName.trim(),
     productId: input.productId,
     productLabel: input.productLabel.trim(),
     varietyId: input.varietyId,
@@ -192,36 +195,12 @@ export function createDemoRecord(
     countUnit: input.countUnit,
     countUnitLabel: input.countUnitLabel.trim(),
     fileName: input.fileName,
-    storeName: input.storeName.trim(),
     recordDate: input.recordDate,
     estimatedCount: input.estimatedCount,
     correctedCount: input.correctedCount,
     finalCount: resolveFinalCount(input.estimatedCount, input.correctedCount),
     createdAt: input.createdAt,
     updatedAt: input.updatedAt ?? input.createdAt,
-  }
-}
-
-export function validateRecordDetails(input: {
-  storeName: string
-  recordDate: string
-}): {
-  storeName: string | null
-  recordDate: string | null
-} {
-  const storeName = input.storeName.trim()
-
-  return {
-    storeName: !storeName
-      ? '店名を入力してください。'
-      : storeName.length > MAX_STORE_NAME_LENGTH
-        ? '店名は80文字以内で入力してください。'
-        : null,
-    recordDate: !input.recordDate
-      ? '記録日を入力してください。'
-      : !isValidDateInput(input.recordDate)
-        ? '正しい日付を入力してください。'
-        : null,
   }
 }
 
@@ -303,16 +282,18 @@ function migrateDemoCountRecord(value: unknown): unknown {
   if (!value || typeof value !== 'object') return value
 
   const record = value as Record<string, unknown>
-  if (record.schemaVersion !== 2 || record.countUnitLabel !== undefined) {
-    return value
-  }
+  if (record.schemaVersion !== 2) return value
 
   const unit = COUNT_UNIT_OPTIONS.find(option => option.id === record.countUnit)
-  if (!unit) return value
+  const countUnitLabel = record.countUnitLabel ?? unit?.label
+  const { storeName, ...recordWithoutStoreName } = record
 
   return {
-    ...record,
-    countUnitLabel: unit.label,
+    ...recordWithoutStoreName,
+    schemaVersion: 3,
+    destinationId: 'legacy',
+    destinationName: storeName,
+    countUnitLabel,
   }
 }
 
@@ -327,9 +308,11 @@ function isDemoCountRecord(value: unknown): value is DemoCountRecord {
   ) return false
 
   if (
-    record.schemaVersion !== 2
+    record.schemaVersion !== 3
     || record.source !== 'demo'
     || !isNonEmptyString(record.id)
+    || !isNonEmptyString(record.destinationId)
+    || !isValidSnapshotLabel(record.destinationName)
     || !isNonEmptyString(record.productId)
     || !isNonEmptyString(record.productLabel)
     || !isNonEmptyString(record.varietyId)
@@ -337,7 +320,6 @@ function isDemoCountRecord(value: unknown): value is DemoCountRecord {
     || !isNonEmptyString(record.countUnit)
     || !isNonEmptyString(record.countUnitLabel)
     || !isNonEmptyString(record.fileName)
-    || !isValidStoreName(record.storeName)
     || typeof record.recordDate !== 'string'
     || !isValidDateInput(record.recordDate)
     || !isNonNegativeSafeInteger(record.estimatedCount)
@@ -362,10 +344,10 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function isValidStoreName(value: unknown): value is string {
+function isValidSnapshotLabel(value: unknown): value is string {
   return typeof value === 'string'
     && value.trim().length > 0
-    && value.trim().length <= MAX_STORE_NAME_LENGTH
+    && value.trim().length <= MAX_SNAPSHOT_LABEL_LENGTH
 }
 
 function isValidIsoDate(value: unknown): value is string {

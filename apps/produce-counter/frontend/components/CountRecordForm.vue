@@ -1,83 +1,40 @@
 <script setup lang="ts">
-import { Calendar, Save, Store } from '@lucide/vue'
-import type { CountUnit, ProductId } from '@nexttree/shared'
+import { CircleCheck, LogOut, Plus, Save } from '@lucide/vue'
 import { ref } from 'vue'
-import type {
-  CountUnitOption,
-  ProductOption,
-  VarietyOption,
-} from '../utils/demo-counter'
 
 export type RecordFormErrors = {
   correctedCount: string | null
-  storeName: string | null
-  recordDate: string | null
 }
 
-const props = defineProps<{
-  productId: ProductId
-  productOptions: readonly ProductOption[]
-  varietyId: string
-  varietyOptions: readonly VarietyOption[]
-  countUnit: CountUnit
-  countUnitOptions: readonly CountUnitOption[]
+defineProps<{
   countUnitLabel: string
   estimatedCount: number | null
   finalCount: number | null
   correctedCountInput: string
-  storeName: string
-  recordDate: string
   errors: RecordFormErrors
   saveMessage: string | null
   saveError: string | null
+  isSaved: boolean
 }>()
 
 const emit = defineEmits<{
-  'update:product-id': [value: ProductId]
-  'update:variety-id': [value: string]
-  'update:count-unit': [value: CountUnit]
   'update:corrected-count-input': [value: string]
-  'update:store-name': [value: string]
-  'update:record-date': [value: string]
   'save': []
+  'start-next': []
+  'finish': []
 }>()
 
 const correctedCountElement = ref<HTMLInputElement | null>(null)
-const storeNameElement = ref<HTMLInputElement | null>(null)
-const recordDateElement = ref<HTMLInputElement | null>(null)
 
-function emitSelect(
-  event: Event,
-  name: 'product-id' | 'variety-id' | 'count-unit',
-) {
-  const value = (event.target as HTMLSelectElement).value
-  if (name === 'product-id') {
-    emit('update:product-id', value as ProductId)
-  } else if (name === 'variety-id') {
-    emit('update:variety-id', value)
-  } else {
-    emit('update:count-unit', value as CountUnit)
-  }
-}
-
-function emitInput(
-  event: Event,
-  name: 'corrected-count-input' | 'store-name' | 'record-date',
-) {
-  const value = (event.target as HTMLInputElement).value
-  if (name === 'corrected-count-input') {
-    emit('update:corrected-count-input', value)
-  } else if (name === 'store-name') {
-    emit('update:store-name', value)
-  } else {
-    emit('update:record-date', value)
-  }
+function onInput(event: Event) {
+  emit(
+    'update:corrected-count-input',
+    (event.target as HTMLInputElement).value,
+  )
 }
 
 function focusFirstError(errors: RecordFormErrors) {
   if (errors.correctedCount) correctedCountElement.value?.focus()
-  else if (errors.storeName) storeNameElement.value?.focus()
-  else if (errors.recordDate) recordDateElement.value?.focus()
 }
 
 defineExpose({ focusFirstError })
@@ -87,8 +44,8 @@ defineExpose({ focusFirstError })
   <section class="tool-panel record-panel" aria-labelledby="record-heading">
     <div class="section-heading">
       <div>
-        <p class="section-kicker">02 / 確認と保存</p>
-        <h2 id="record-heading">数量と記録情報</h2>
+        <p class="section-kicker">03 / 数量</p>
+        <h2 id="record-heading">確認と保存</h2>
       </div>
     </div>
 
@@ -113,64 +70,34 @@ defineExpose({ focusFirstError })
       </div>
     </dl>
 
-    <form class="record-form" novalidate @submit.prevent="emit('save')">
-      <fieldset>
-        <legend>対象</legend>
+    <div v-if="isSaved" class="saved-state" data-testid="save-actions">
+      <div class="saved-message" role="status">
+        <CircleCheck :size="22" aria-hidden="true" />
+        <p>{{ saveMessage }}</p>
+      </div>
+      <div class="saved-actions">
+        <button
+          class="button button-primary"
+          data-testid="start-next-record"
+          type="button"
+          @click="emit('start-next')"
+        >
+          <Plus :size="18" aria-hidden="true" />
+          同じ卸先で次を登録
+        </button>
+        <button
+          class="button button-secondary"
+          data-testid="finish-after-save"
+          type="button"
+          @click="emit('finish')"
+        >
+          <LogOut :size="18" aria-hidden="true" />
+          作業を終了
+        </button>
+      </div>
+    </div>
 
-        <div class="configuration-grid">
-          <div class="field-group">
-            <label for="product-id">品目</label>
-            <select
-              id="product-id"
-              :value="productId"
-              @change="emitSelect($event, 'product-id')"
-            >
-              <option
-                v-for="product in productOptions"
-                :key="product.id"
-                :value="product.id"
-              >
-                {{ product.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label for="variety-id">品種</label>
-            <select
-              id="variety-id"
-              :value="varietyId"
-              @change="emitSelect($event, 'variety-id')"
-            >
-              <option
-                v-for="variety in varietyOptions"
-                :key="variety.id"
-                :value="variety.id"
-              >
-                {{ variety.label }}
-              </option>
-            </select>
-          </div>
-
-          <div class="field-group">
-            <label for="count-unit">数え方</label>
-            <select
-              id="count-unit"
-              :value="countUnit"
-              @change="emitSelect($event, 'count-unit')"
-            >
-              <option
-                v-for="unit in countUnitOptions"
-                :key="unit.id"
-                :value="unit.id"
-              >
-                {{ unit.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-      </fieldset>
-
+    <form v-else class="record-form" novalidate @submit.prevent="emit('save')">
       <div class="field-group">
         <label for="corrected-count">人間による修正数</label>
         <input
@@ -182,9 +109,10 @@ defineExpose({ focusFirstError })
           min="0"
           step="1"
           placeholder="漏れがある場合に入力"
+          :disabled="estimatedCount === null"
           :aria-invalid="errors.correctedCount ? 'true' : undefined"
           :aria-describedby="errors.correctedCount ? 'corrected-count-error' : 'corrected-count-hint'"
-          @input="emitInput($event, 'corrected-count-input')"
+          @input="onInput"
         >
         <p id="corrected-count-hint" class="field-hint">
           空欄の場合はデモ推定数を使用します。
@@ -198,56 +126,6 @@ defineExpose({ focusFirstError })
         </p>
       </div>
 
-      <fieldset>
-        <legend>記録情報</legend>
-
-        <div class="field-group">
-          <label for="store-name">
-            <Store :size="16" aria-hidden="true" />
-            店名
-          </label>
-          <input
-            id="store-name"
-            ref="storeNameElement"
-            :value="storeName"
-            type="text"
-            maxlength="80"
-            autocomplete="organization"
-            required
-            placeholder="例：港店"
-            :aria-invalid="errors.storeName ? 'true' : undefined"
-            :aria-describedby="errors.storeName ? 'store-name-error' : undefined"
-            @input="emitInput($event, 'store-name')"
-          >
-          <p v-if="errors.storeName" id="store-name-error" class="field-error">
-            {{ errors.storeName }}
-          </p>
-        </div>
-
-        <div class="field-group">
-          <label for="record-date">
-            <Calendar :size="16" aria-hidden="true" />
-            記録日
-          </label>
-          <input
-            id="record-date"
-            ref="recordDateElement"
-            :value="recordDate"
-            type="date"
-            required
-            :aria-invalid="errors.recordDate ? 'true' : undefined"
-            :aria-describedby="errors.recordDate ? 'record-date-error' : 'record-date-hint'"
-            @input="emitInput($event, 'record-date')"
-          >
-          <p id="record-date-hint" class="field-hint">
-            作成日時・更新日時とは別の業務日付です。
-          </p>
-          <p v-if="errors.recordDate" id="record-date-error" class="field-error">
-            {{ errors.recordDate }}
-          </p>
-        </div>
-      </fieldset>
-
       <button
         class="button button-primary save-button"
         type="submit"
@@ -258,7 +136,7 @@ defineExpose({ focusFirstError })
       </button>
     </form>
 
-    <div class="save-status" aria-live="polite" aria-atomic="true">
+    <div v-if="!isSaved" class="save-status" aria-live="polite" aria-atomic="true">
       <p v-if="saveMessage" class="success-message">{{ saveMessage }}</p>
       <p v-else-if="saveError" class="field-error">{{ saveError }}</p>
     </div>
@@ -267,6 +145,7 @@ defineExpose({ focusFirstError })
 
 <style scoped>
 .record-panel {
+  grid-area: record;
   align-self: start;
 }
 
@@ -319,71 +198,8 @@ defineExpose({ focusFirstError })
   display: grid;
   gap: 22px;
   margin-top: 24px;
-}
-
-.configuration-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.field-group {
-  display: grid;
-  gap: 8px;
-}
-
-.field-group label {
-  display: flex;
-  gap: 7px;
-  align-items: center;
-  color: var(--color-text);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.field-group input,
-.field-group select {
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
-  color: var(--color-text);
-  font: inherit;
-  background: #fff;
-  border: 1px solid var(--color-control-border);
-  border-radius: 5px;
-}
-
-.field-group input:hover,
-.field-group select:hover {
-  border-color: #6f7d73;
-}
-
-.field-group input:focus-visible,
-.field-group select:focus-visible {
-  border-color: var(--color-accent-strong);
-  outline: 3px solid var(--color-focus);
-  outline-offset: 1px;
-}
-
-.field-group input[aria-invalid="true"] {
-  border-color: var(--color-danger);
-}
-
-fieldset {
-  display: grid;
-  gap: 20px;
-  min-width: 0;
-  margin: 0;
-  padding: 20px 0 0;
-  border: 0;
+  padding-top: 22px;
   border-top: 1px solid var(--color-border);
-}
-
-legend {
-  padding: 0;
-  color: var(--color-text);
-  font-size: 14px;
-  font-weight: 750;
 }
 
 .save-button {
@@ -391,8 +207,8 @@ legend {
 }
 
 .save-status {
-  min-height: 24px;
-  margin-top: 14px;
+  min-height: 22px;
+  margin-top: 12px;
 }
 
 .success-message {
@@ -401,10 +217,30 @@ legend {
   font-weight: 700;
 }
 
-@media (max-width: 479px) {
-  .configuration-grid {
-    grid-template-columns: 1fr;
-  }
+.saved-state {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.saved-message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--color-accent-strong);
+  font-weight: 750;
+}
+
+.saved-message p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.saved-actions {
+  display: grid;
+  gap: 10px;
 }
 
 @media (max-width: 359px) {

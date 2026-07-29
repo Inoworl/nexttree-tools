@@ -10,7 +10,6 @@ import {
   parseStoredDemoRecords,
   validateImageDimensions,
   validateImageFile,
-  validateRecordDetails,
   type DemoCountRecord,
   getCountUnitLabel,
   getProductOption,
@@ -74,7 +73,8 @@ function makeRecord(
     id: 'demo-1',
     createdAt: '2026-07-15T10:00:00.000Z',
     fileName: 'produce.jpg',
-    storeName: '港店',
+    destinationId: 'harbor-store',
+    destinationName: '港青果店（デモ）',
     recordDate: '2026-07-14',
     productId: 'loquat',
     productLabel: 'びわ',
@@ -147,10 +147,12 @@ describe('parseCorrectedCount', () => {
 })
 
 describe('createDemoRecord', () => {
-  it('汎用デモ用のv2スキーマ情報を付与する', () => {
+  it('卸先を含むv3スキーマ情報を付与する', () => {
     expect(makeRecord()).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       source: 'demo',
+      destinationId: 'harbor-store',
+      destinationName: '港青果店（デモ）',
       productId: 'loquat',
       productLabel: 'びわ',
       varietyId: 'mogi',
@@ -203,42 +205,6 @@ describe('createDemoRecord', () => {
   })
 })
 
-describe('validateRecordDetails', () => {
-  it('店名と記録日を必須にする', () => {
-    expect(validateRecordDetails({ storeName: '', recordDate: '' })).toEqual({
-      storeName: '店名を入力してください。',
-      recordDate: '記録日を入力してください。',
-    })
-  })
-
-  it('空白だけの店名を拒否する', () => {
-    expect(validateRecordDetails({
-      storeName: '   ',
-      recordDate: '2026-07-15',
-    }).storeName).toBe('店名を入力してください。')
-  })
-
-  it('80文字を超える店名を拒否する', () => {
-    expect(validateRecordDetails({
-      storeName: '店'.repeat(81),
-      recordDate: '2026-07-15',
-    }).storeName).toBe('店名は80文字以内で入力してください。')
-  })
-
-  it('存在しない日付を拒否する', () => {
-    expect(validateRecordDetails({
-      storeName: '港店',
-      recordDate: '2026-02-30',
-    }).recordDate).toBe('正しい日付を入力してください。')
-  })
-
-  it('店名と実在する記録日があればエラーを返さない', () => {
-    expect(
-      validateRecordDetails({ storeName: '港店', recordDate: '2026-07-15' }),
-    ).toEqual({ storeName: null, recordDate: null })
-  })
-})
-
 describe('parseStoredDemoRecords', () => {
   it('保存データがなければ空の記録として扱う', () => {
     expect(parseStoredDemoRecords(null)).toEqual([])
@@ -249,7 +215,7 @@ describe('parseStoredDemoRecords', () => {
     expect(parseStoredDemoRecords('{"id":"demo-1"}')).toEqual([])
   })
 
-  it('びわ専用のv1記録をv2記録として混在させない', () => {
+  it('びわ専用のv1記録をv3記録として混在させない', () => {
     expect(parseStoredDemoRecords(JSON.stringify([{
       ...makeRecord(),
       schemaVersion: 1,
@@ -264,7 +230,9 @@ describe('parseStoredDemoRecords', () => {
     'varietyId',
     'varietyLabel',
     'countUnit',
-  ] as const)('v2記録の必須項目 %s が欠落・null・空白なら除外する', (field) => {
+    'destinationId',
+    'destinationName',
+  ] as const)('v3記録の必須項目 %s が欠落・null・空白なら除外する', (field) => {
     for (const invalidValue of [undefined, null, '   ']) {
       const invalidRecord: Record<string, unknown> = { ...makeRecord() }
       if (invalidValue === undefined) delete invalidRecord[field]
@@ -281,12 +249,21 @@ describe('parseStoredDemoRecords', () => {
     }]))).toEqual([])
   })
 
-  it('単位表示名のない旧v2記録は既知の単位コードから補完する', () => {
-    const oldV2Record: Record<string, unknown> = { ...makeRecord() }
-    delete oldV2Record.countUnitLabel
+  it('旧v2記録は店名を卸先名としてv3へ移行する', () => {
+    const oldV2Record: Record<string, unknown> = {
+      ...makeRecord(),
+      schemaVersion: 2,
+      storeName: '旧店舗',
+    }
+    delete oldV2Record.destinationId
+    delete oldV2Record.destinationName
 
     expect(parseStoredDemoRecords(JSON.stringify([oldV2Record]))).toEqual([
-      makeRecord(),
+      {
+        ...makeRecord(),
+        destinationId: 'legacy',
+        destinationName: '旧店舗',
+      },
     ])
   })
 
